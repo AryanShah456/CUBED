@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solve — Cubed</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /*  SOLVER PAGE  */
+    .page-header {
+      padding: 3.5rem clamp(1.5rem, 6vw, 5rem) 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header .section-label { margin-bottom: .5rem; }
+    .page-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem,5vw,4rem);
+      letter-spacing: .03em;
+    }
+
+    .solver-layout {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 2rem;
+      padding: 2rem clamp(1.5rem, 6vw, 5rem);
+      align-items: start;
+    }
+    @media (max-width: 1000px) {
+      .solver-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Tabs */
+    .input-tabs {
+      display: flex; gap: .25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.75rem;
+    }
+    .input-tab {
+      padding: .6rem 1.2rem;
+      font-size: .875rem; font-weight: 500;
+      color: var(--muted); border-bottom: 2px solid transparent;
+      transition: all .2s; cursor: pointer;
+      margin-bottom: -1px;
+      background: none; border-top: none; border-left: none; border-right: none;
+    }
+    .input-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .input-tab:hover:not(.active) { color: var(--text); }
+
+    .input-panel { display: none; }
+    .input-panel.active { display: block; }
+
+    /* Color picker */
+    .picker-section { margin-bottom: 1.5rem; }
+    .picker-label {
+      font-size: .78rem; font-family: var(--font-mono);
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: .75rem;
+    }
+    #color-picker {
+      display: flex; gap: .5rem; flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      background: var(--swatch);
+      border: 2.5px solid transparent;
+      transition: all .15s;
+      position: relative;
+    }
+    .color-swatch:hover { transform: scale(1.1); }
+    .color-swatch.active {
+      border-color: var(--text);
+      box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text);
+    }
+
+    /* Completion bar */
+    .completion-bar-wrap {
+      margin-bottom: 1.5rem;
+    }
+    .completion-meta {
+      display: flex; justify-content: space-between;
+      font-size: .78rem; color: var(--muted);
+      font-family: var(--font-mono);
+      margin-bottom: .4rem;
+    }
+    .completion-bar {
+      height: 4px; background: var(--border); border-radius: 9px; overflow: hidden;
+    }
+    #completion-fill {
+      height: 100%; background: var(--accent);
+      border-radius: 9px; transition: width .3s ease;
+      width: 0%;
+    }
+
+    /* Face panels */
+    #face-panels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .face-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .8rem;
+    }
+    .face-panel-header {
+      margin-bottom: .6rem;
+    }
+    .face-label {
+      font-size: .72rem; font-family: var(--font-mono);
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .face-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+    }
+    .face-cell {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: transform .1s, border-color .15s;
+      background: var(--surface2);
+    }
+    .face-cell:hover:not(.centre) {
+      transform: scale(1.08);
+      border-color: var(--text);
+    }
+    .face-cell.centre {
+      cursor: default;
+      border-color: rgba(255,255,255,.2);
+      position: relative;
+    }
+    .face-cell.centre::after {
+      content: '·';
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: rgba(0,0,0,.3);
+      pointer-events: none;
+    }
+
+    /* Panel actions */
+    .face-actions {
+      display: flex; gap: .75rem; flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Scramble tab */
+    .scramble-field-wrap {
+      margin-bottom: 1.25rem;
+    }
+    .scramble-field-wrap label {
+      display: block; font-size: .78rem; font-family: var(--font-mono);
+      letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+      margin-bottom: .5rem;
+    }
+    #scramble-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      padding: .85rem 1rem;
+      resize: vertical;
+      min-height: 90px;
+      transition: border-color .2s;
+    }
+    #scramble-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    #scramble-input::placeholder { color: var(--muted); }
+    .scramble-hint {
+      font-size: .8rem; color: var(--muted); margin-top: .4rem;
+      font-family: var(--font-mono);
+    }
+
+    /* Solve button */
+    .solve-btn-wrap {
+      margin-top: 1.5rem;
+    }
+    #btn-solve {
+      width: 100%; padding: 1rem;
+      font-size: 1rem; font-weight: 600; letter-spacing: .05em;
+      background: var(--accent); color: #0d0d0d;
+      border-radius: var(--radius);
+      transition: all .2s;
+    }
+    #btn-solve:hover { background: #f5d45c; transform: translateY(-1px); }
+
+    /* Loader */
+    #solving-loader {
+      display: none;
+      align-items: center; justify-content: center; gap: .75rem;
+      padding: 2rem;
+      color: var(--muted); font-size: .875rem;
+    }
+    .loader-dots { display: flex; gap: 4px; }
+    .loader-dots span {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+      animation: dotBounce .8s ease-in-out infinite;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: .15s; }
+    .loader-dots span:nth-child(3) { animation-delay: .3s; }
+    @keyframes dotBounce {
+      0%,80%,100% { transform: scale(0.7); opacity: .4; }
+      40%          { transform: scale(1); opacity: 1; }
+    }
+
+    /* Solution panel */
+    .solution-panel {
+      position: sticky; top: 80px;
+    }
+    .solution-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .solution-panel-title {
+      font-family: var(--font-display); font-size: 1.5rem; letter-spacing: .04em;
+    }
+
+    /* Solution styles */
+    .solve-error {
+      color: var(--red); font-size: .9rem;
+      padding: 1rem;
+      background: rgba(239,68,68,.08);
+      border: 1px solid rgba(239,68,68,.2);
+      border-radius: var(--radius);
+    }
+    .solve-done {
+      text-align: center; padding: 2.5rem;
+    }
+    .solve-done-icon {
+      width: 56px; height: 56px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: #fff;
+      margin: 0 auto 1rem;
+    }
+    .solve-summary {
+      display: flex; gap: 1rem; align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .solve-stat {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .6rem 1.2rem;
+    }
+    .solve-stat-n {
+      font-family: var(--font-display); font-size: 1.8rem; color: var(--accent); line-height: 1;
+    }
+    .solve-stat span:last-child { font-size: .72rem; color: var(--muted); text-transform: uppercase; font-family: var(--font-mono); }
+    .solve-status {
+      padding: .3rem .8rem; border-radius: 999px;
+      font-size: .78rem; font-family: var(--font-mono); letter-spacing: .08em;
+    }
+    .solve-status.ok { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .solve-status.err { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+
+    .solve-steps {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .solve-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      transition: border-color .2s;
+    }
+    .solve-step:hover { border-color: rgba(232,197,71,.3); }
+    .step-header {
+      display: flex; gap: .85rem; align-items: flex-start;
+      margin-bottom: .75rem;
+    }
+    .step-num {
+      min-width: 28px; height: 28px;
+      background: var(--accent); color: #0d0d0d;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: .95rem;
+      flex-shrink: 0; margin-top: .1rem;
+    }
+    .step-label { font-weight: 600; font-size: .92rem; }
+    .step-desc { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+    .step-moves { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .move-chip {
+      font-family: var(--font-mono); font-size: .82rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 5px; padding: .2rem .55rem;
+      color: var(--accent);
+      cursor: default;
+      transition: background .15s;
+    }
+    .move-chip:hover { background: rgba(232,197,71,.12); }
+
+    /* Instructions hint */
+    .input-hint {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: .82rem; color: var(--muted); line-height: 1.65;
+    }
+    .input-hint strong { color: var(--text); }
+
+    @media (max-width: 600px) {
+      #face-panels { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CUB<span>ED</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="solver.html" class="active">Solve</a></li>
+    <li><a href="notations.html">Notations</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page-header">
+  <div class="section-label">Solver</div>
+  <h1>Input Your Cube</h1>
+</div>
+
+<div class="solver-layout">
+
+  <!--LEFT: INPUT-->
+  <div>
+    <div class="input-tabs">
+      <button class="input-tab active" data-tab="visual">🎨 Paint Faces</button>
+      <button class="input-tab" data-tab="scramble">⌨ Enter Scramble</button>
+    </div>
+
+    <!--VISUAL TAB-->
+    <div class="input-panel active" id="panel-visual">
+
+      <div class="input-hint">
+        <strong>How to use:</strong> Pick a colour from the palette below, then click any sticker on the 6 panels to paint it. The centre squares are fixed. Right-click a sticker to clear it.
+      </div>
+
+      <div class="picker-section">
+        <div class="picker-label">Selected colour</div>
+        <div id="color-picker"></div>
+      </div>
+
+      <div class="completion-bar-wrap">
+        <div class="completion-meta">
+          <span id="completion-label">0/54 stickers filled</span>
+          <span>Fill all 54</span>
+        </div>
+        <div class="completion-bar">
+          <div id="completion-fill"></div>
+        </div>
+      </div>
+
+      <div id="face-panels"></div>
+
+      <div class="face-actions">
+        <button class="btn btn-ghost" id="btn-reset-faces">Reset</button>
+        <button class="btn btn-ghost" id="btn-fill-solved">Fill solved</button>
+      </div>
+    </div>
+
+    <!-- SCRAMBLE TAB -->
+    <div class="input-panel" id="panel-scramble">
+      <div class="input-hint">
+        <strong>Scramble notation:</strong> Enter moves separated by spaces. Use <code style="color:var(--accent)">U D F B L R</code> with optional <code style="color:var(--accent)">'</code> (counter-clockwise) or <code style="color:var(--accent)">2</code> (180°). Example: <code style="color:var(--accent)">R U R' F2 L D'</code>
+        <br><br>Not sure of the notation? <a href="notations.html" style="color:var(--accent); text-decoration:underline">Read the guide →</a>
+      </div>
+
+      <div class="scramble-field-wrap">
+        <label for="scramble-input">Scramble</label>
+        <textarea id="scramble-input" placeholder="R U R' F2 L D' B U2 L' R ..."></textarea>
+        <div class="scramble-hint">Tip: moves are case-sensitive. Use capital letters.</div>
+      </div>
+
+      <button class="btn btn-ghost w-full" id="btn-random-scramble">↺ Generate random scramble</button>
+    </div>
+
+    <div class="solve-btn-wrap">
+      <button id="btn-solve">Solve →</button>
+    </div>
+  </div>
+
+  <!--RIGHT: SOLUTION-->
+  <div class="solution-panel">
+    <div class="solution-panel-header">
+      <div class="solution-panel-title">Solution</div>
+    </div>
+
+    <div id="solving-loader">
+      <div class="loader-dots">
+        <span></span><span></span><span></span>
+      </div>
+      Calculating…
+    </div>
+
+    <div id="solution-output">
+      <div style="color:var(--muted); font-size:.875rem; line-height:1.7; padding:.5rem 0;">
+        Your step-by-step solution will appear here once you press <strong style="color:var(--text)">Solve</strong>.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer" style="margin-top:4rem;">
+  <span class="footer-logo">CUBED</span>
+</footer>
+
+<script src="solver-engine.js"></script>
+<script src="cube-input.js"></script>
+</body>
+</html>

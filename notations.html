@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notations — Cubed</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-header {
+      padding: 3.5rem clamp(1.5rem, 6vw, 5rem) 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 2rem; flex-wrap: wrap;
+    }
+    .page-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem,5vw,4rem);
+      letter-spacing: .03em;
+    }
+    .page-nav {
+      display: flex; gap: .75rem; flex-wrap: wrap;
+    }
+    .page-nav a {
+      font-size: .8rem; font-family: var(--font-mono);
+      color: var(--muted); letter-spacing: .08em;
+      transition: color .2s;
+    }
+    .page-nav a:hover { color: var(--accent); }
+
+    .notations-body {
+      padding: 3rem clamp(1.5rem, 6vw, 5rem);
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    @media (max-width: 780px) {
+      .notations-body { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    /* Sidebar TOC */
+    .sidebar {
+      position: sticky; top: 80px;
+    }
+    .sidebar-title {
+      font-size: .72rem; font-family: var(--font-mono);
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1rem;
+    }
+    .sidebar ul { list-style: none; }
+    .sidebar li { margin-bottom: .15rem; }
+    .sidebar a {
+      font-size: .85rem; color: var(--muted);
+      transition: color .2s; display: block; padding: .2rem 0;
+    }
+    .sidebar a:hover { color: var(--accent); }
+
+    /* Content */
+    .notation-section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 84px;
+    }
+    .notation-section-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem; letter-spacing: .04em;
+      margin-bottom: 1.25rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Notation cards grid */
+    .notations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: .75rem;
+    }
+    .notation-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1rem;
+      cursor: default;
+      transition: border-color .2s, transform .2s;
+    }
+    .notation-card.highlight,
+    .notation-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .notation-badge {
+      font-family: var(--font-display);
+      font-size: 2rem; color: var(--accent);
+      line-height: 1; margin-bottom: .4rem;
+    }
+    .notation-name {
+      font-weight: 600; font-size: .88rem; margin-bottom: .2rem;
+    }
+    .notation-desc {
+      font-size: .78rem; color: var(--muted); line-height: 1.55;
+    }
+
+    /* Cube face diagram */
+    .face-diagram-wrap {
+      display: flex; gap: 2rem; flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .face-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+    .face-diagram-title {
+      font-size: .78rem; font-family: var(--font-mono);
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1rem; text-align: center;
+    }
+    .face-diagram-cube {
+      display: grid; grid-template-columns: repeat(3, 44px);
+      gap: 3px;
+    }
+    .fdc-cell {
+      width: 44px; height: 44px;
+      border-radius: 5px;
+      border: 1.5px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: .72rem; font-weight: 600;
+      color: rgba(0,0,0,.6);
+    }
+
+    .tips-list {
+      display: flex; flex-direction: column; gap: .85rem;
+    }
+    .tip-item {
+      display: flex; gap: 1rem; align-items: flex-start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.2rem;
+    }
+    .tip-icon {
+      font-size: 1.2rem; flex-shrink: 0; margin-top: .1rem;
+    }
+    .tip-text { font-size: .9rem; color: var(--muted); line-height: 1.65; }
+    .tip-text strong { color: var(--text); }
+
+    /* Algo table */
+    .algo-table {
+      width: 100%; border-collapse: collapse;
+    }
+    .algo-table th {
+      text-align: left; padding: .7rem 1rem;
+      font-size: .78rem; font-family: var(--font-mono);
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .algo-table td {
+      padding: .75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .875rem; vertical-align: top;
+    }
+    .algo-table tr:last-child td { border-bottom: none; }
+    .algo-table tr:hover td { background: var(--surface2); }
+    .algo-moves {
+      font-family: var(--font-mono); font-size: .82rem;
+      color: var(--accent); line-height: 1.8;
+    }
+    .algo-desc { color: var(--muted); font-size: .82rem; margin-top: .2rem; }
+
+    /* Quiz */
+    .quiz-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius)*1.5);
+      padding: 2rem;
+    }
+    .quiz-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .quiz-score-wrap {
+      font-family: var(--font-mono); font-size: .82rem;
+      color: var(--muted);
+    }
+    #quiz-score { color: var(--accent); font-weight: bold; }
+    #quiz-progress { color: var(--muted); font-size: .8rem; font-family: var(--font-mono); }
+    #quiz-question {
+      font-weight: 600; font-size: 1.05rem;
+      margin-bottom: 1.25rem; line-height: 1.5;
+    }
+    #quiz-options {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: .6rem; margin-bottom: 1rem;
+    }
+    @media (max-width: 520px) { #quiz-options { grid-template-columns: 1fr; } }
+    .quiz-opt {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text); padding: .7rem .9rem;
+      font-size: .875rem; text-align: left;
+      transition: all .15s; cursor: pointer;
+    }
+    .quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .quiz-opt.correct { border-color: var(--green); background: rgba(34,197,94,.1); color: var(--green); }
+    .quiz-opt.wrong   { border-color: var(--red);   background: rgba(239,68,68,.08);  color: var(--red); }
+    .quiz-opt:disabled { cursor: default; }
+    .quiz-feedback {
+      font-size: .875rem; min-height: 1.4rem;
+      margin-bottom: .75rem;
+    }
+    .quiz-feedback.ok  { color: var(--green); }
+    .quiz-feedback.err { color: var(--red); }
+    #quiz-next { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CUB<span>ED</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="solver.html">Solve</a></li>
+    <li><a href="notations.html" class="active">Notations</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page-header">
+  <div>
+    <div class="section-label">Reference</div>
+    <h1>Cube Notations</h1>
+  </div>
+
+<div class="notations-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title">On this page</div>
+    <ul>
+      <li><a href="#basics">Basic Moves</a></li>
+      <li><a href="#modifiers">Modifiers</a></li>
+      <li><a href="#algos">Key Algorithms</a></li>
+      <li><a href="#tips">Reading Tips</a></li>
+      <li><a href="#quiz">Quiz</a></li>
+    </ul>
+  </aside>
+
+  <!-- CONTENT -->
+  <main>
+
+    <!-- BASICS -->
+    <div class="notation-section" id="basics">
+      <div class="notation-section-title">Basic Face Moves</div>
+      <p class="text-muted" style="margin-bottom:1.25rem; font-size:.9rem; line-height:1.7;">
+        Each letter refers to a face of the cube. A bare letter means turn that face 90° clockwise when looking directly at it.
+      </p>
+      <div class="notations-grid">
+        <div class="notation-card">
+          <div class="notation-badge">U</div>
+          <div class="notation-name">Up</div>
+          <div class="notation-desc">Top face, clockwise from above</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">D</div>
+          <div class="notation-name">Down</div>
+          <div class="notation-desc">Bottom face, clockwise from below</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">F</div>
+          <div class="notation-name">Front</div>
+          <div class="notation-desc">Face facing you, clockwise</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">B</div>
+          <div class="notation-name">Back</div>
+          <div class="notation-desc">Face away from you, clockwise from behind</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">L</div>
+          <div class="notation-name">Left</div>
+          <div class="notation-desc">Left face, clockwise from left</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">R</div>
+          <div class="notation-name">Right</div>
+          <div class="notation-desc">Right face, clockwise from right</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODIFIERS -->
+    <div class="notation-section" id="modifiers">
+      <div class="notation-section-title">Modifiers</div>
+      <p class="text-muted" style="margin-bottom:1.25rem; font-size:.9rem; line-height:1.7;">
+        Suffixes change what a basic move does. You'll see these constantly in algorithms.
+      </p>
+      <div class="notations-grid">
+        <div class="notation-card">
+          <div class="notation-badge" style="color:var(--text)">(none)</div>
+          <div class="notation-name">Clockwise 90°</div>
+          <div class="notation-desc">E.g. <code style="color:var(--accent)">R</code> — right face, one quarter turn clockwise</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">'</div>
+          <div class="notation-name">Counter-clockwise</div>
+          <div class="notation-desc">E.g. <code style="color:var(--accent)">R'</code> — right face, one quarter turn the other way</div>
+        </div>
+        <div class="notation-card">
+          <div class="notation-badge">2</div>
+          <div class="notation-name">Double (180°)</div>
+          <div class="notation-desc">E.g. <code style="color:var(--accent)">F2</code> — front face, half turn (same both ways)</div>
+        </div>
+      </div>
+      <div style="margin-top:1.25rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; font-size:.875rem; color:var(--muted); line-height:1.7;">
+        💡 A quick trick: <strong style="color:var(--text)">R U R' U'</strong> is one of the most common four-move sequences in cube-solving. Read it as: Right clockwise, Up clockwise, Right counter-clockwise, Up counter-clockwise.
+      </div>
+    </div>
+
+    <!-- ALGORITHMS -->
+    <div class="notation-section" id="algos">
+      <div class="notation-section-title">Key Algorithms</div>
+      <p class="text-muted" style="margin-bottom:1.25rem; font-size:.9rem; line-height:1.7;">
+        These are the core move sequences (algorithms / "algs") used to solve the cube. Memorising even a few of these goes a long way.
+      </p>
+      <div class="card" style="overflow-x:auto;">
+        <table class="algo-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Moves</th>
+              <th>What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Sexy Move</strong></td>
+              <td><div class="algo-moves">R U R' U'</div></td>
+              <td><div class="algo-desc">Fundamental 4-move sequence. Cycles three corners.</div></td>
+            </tr>
+            <tr>
+              <td><strong>OLL Cross</strong></td>
+              <td><div class="algo-moves">F R U R' U' F'</div></td>
+              <td><div class="algo-desc">Forms a yellow cross on the bottom face.</div></td>
+            </tr>
+            <tr>
+              <td><strong>Sune</strong></td>
+              <td><div class="algo-moves">R U R' U R U2 R'</div></td>
+              <td><div class="algo-desc">Orients last layer corners. One of the most used OLL algs.</div></td>
+            </tr>
+            <tr>
+              <td><strong>U-Perm</strong></td>
+              <td><div class="algo-moves">R U R' U R U2 R'</div></td>
+              <td><div class="algo-desc">Cycles three last-layer edges (PLL).</div></td>
+            </tr>
+            <tr>
+              <td><strong>Corner Swap</strong></td>
+              <td><div class="algo-moves">U R U' L' U R' U' L</div></td>
+              <td><div class="algo-desc">Swaps last-layer corners without disturbing edges.</div></td>
+            </tr>
+            <tr>
+              <td><strong>Right Insert</strong></td>
+              <td><div class="algo-moves">U R U' R'</div></td>
+              <td><div class="algo-desc">Inserts an edge piece into the right slot (F2L).</div></td>
+            </tr>
+            <tr>
+              <td><strong>Left Insert</strong></td>
+              <td><div class="algo-moves">U' L' U L</div></td>
+              <td><div class="algo-desc">Inserts an edge piece into the left slot (F2L).</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TIPS -->
+    <div class="notation-section" id="tips">
+      <div class="notation-section-title">Reading Tips</div>
+      <div class="tips-list">
+        <div class="tip-item">
+          <div class="tip-text"><strong>Hold your cube consistently.</strong> White on top, orange in front — always. If you rotate the whole cube, the letters change meaning.</div>
+        </div>
+        <div class="tip-item">
+          <div class="tip-text"><strong>Clockwise means clockwise from that face's perspective.</strong> For R, stand to the right of the cube and look at it, that's the clockwise direction for R.</div>
+        </div>
+        <div class="tip-item">
+          <div class="tip-text"><strong>Algorithms are repeatable.</strong> If something goes wrong, repeat the algorithm — most algs cycle back to the start after 2–6 repetitions.</div>
+        </div>
+        <div class="tip-item">
+          <div class="tip-text"><strong>Do the moves slowly first.</strong> Speed comes naturally. Understanding what each move does matters more than how fast you do it.</div>
+        </div>
+        <div class="tip-item">
+          <div class="tip-text"><strong>B moves are awkward.</strong> B means the back face, clockwise from behind. Many beginners re-orient the cube so B becomes F.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="notation-section" id="quiz">
+      <div class="notation-section-title">Quick Quiz</div>
+      <p class="text-muted" style="margin-bottom:1.5rem; font-size:.9rem;">Test what you've learned. Five questions.</p>
+      <div class="quiz-card">
+        <div class="quiz-header">
+          <div id="quiz-progress" style="font-family:var(--font-mono);font-size:.8rem;color:var(--muted)">1 / 5</div>
+          <div class="quiz-score-wrap">Score: <span id="quiz-score">0</span></div>
+        </div>
+        <div id="quiz-question"></div>
+        <div id="quiz-options"></div>
+        <div id="quiz-feedback" class="quiz-feedback"></div>
+        <button id="quiz-next" class="btn btn-primary">Next →</button>
+      </div>
+    </div>
+
+    <!-- GO SOLVE CTA -->
+    <div style="text-align:center; padding:2rem 0;">
+      <a href="solver.html" class="btn btn-primary btn-lg">Ready? Go solve your cube →</a>
+    </div>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-logo">CUBED</span>
+</footer>
+
+<script src="notations.js"></script>
+</body>
+</html>

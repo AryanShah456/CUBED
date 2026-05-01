@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cubed — Rubik's Cube Solver</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── HOME-SPECIFIC ─────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 4rem;
+      padding: clamp(3rem, 8vw, 6rem) clamp(1.5rem, 6vw, 5rem);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -40%; right: -10%;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(232,197,71,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono); font-size: .8rem;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 28px; height: 2px; background: var(--accent);
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      line-height: .95; letter-spacing: .01em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title em { color: var(--accent); font-style: normal; }
+    .hero-sub {
+      color: var(--muted); font-size: 1.05rem;
+      line-height: 1.75; max-width: 46ch;
+      margin-bottom: 2.5rem;
+    }
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    /* Cube illustration */
+    .hero-visual {
+      display: flex; justify-content: center; align-items: center;
+    }
+    .cube-3d {
+      width: 260px; height: 260px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotateCube 12s linear infinite;
+    }
+    @keyframes rotateCube {
+      0%   { transform: rotateX(-20deg) rotateY(0deg); }
+      100% { transform: rotateX(-20deg) rotateY(360deg); }
+    }
+    .cube-3d .c-face {
+      position: absolute;
+      width: 160px; height: 160px;
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 4px; padding: 6px;
+      background: #1e1e1e;
+      border: 1.5px solid rgba(255,255,255,.08);
+      border-radius: 6px;
+      backface-visibility: hidden;
+    }
+    .cube-3d .c-face.top    { transform: rotateX(90deg) translateZ(80px); }
+    .cube-3d .c-face.front  { transform: translateZ(80px); }
+    .cube-3d .c-face.right  { transform: rotateY(90deg) translateZ(80px); }
+    .cube-3d .c-face span {
+      border-radius: 3px;
+      display: block;
+    }
+    /* Centering all 3 faces */
+    .cube-3d { left: 50%; top: 50%; margin-left:-80px; margin-top:-80px; }
+    .cube-3d-wrap {
+      width:260px; height:260px;
+      perspective: 600px; perspective-origin: 50% 40%;
+      position: relative;
+    }
+
+    /* Feature grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 1.5rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .feature-icon {
+      font-size: 1.8rem; margin-bottom: 1rem;
+      display: block;
+    }
+    .feature-title {
+      font-weight: 600; margin-bottom: .4rem; font-size: .95rem;
+    }
+    .feature-desc { color: var(--muted); font-size: .875rem; line-height: 1.6; }
+
+    /* How it works */
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      position: relative;
+    }
+    .step-card {
+      text-align: center; padding: 2rem 1.5rem;
+    }
+    .step-num {
+      width: 52px; height: 52px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 1.5rem;
+      color: var(--accent); margin: 0 auto 1.2rem;
+    }
+    .step-title { font-weight: 600; margin-bottom: .4rem; }
+    .step-desc { color: var(--muted); font-size: .875rem; line-height: 1.65; }
+
+    /* Banner */
+    .cta-banner {
+      margin: 0 clamp(1.5rem, 6vw, 5rem) clamp(3rem, 6vw, 5rem);
+      background: var(--accent);
+      border-radius: calc(var(--radius)*2);
+      padding: 3.5rem 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 2rem; flex-wrap: wrap;
+    }
+    .cta-banner-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      color: #0d0d0d; line-height: 1.1;
+    }
+    .cta-banner-sub { color: rgba(0,0,0,.6); margin-top: .4rem; font-size: .95rem; }
+    .btn-dark { background: #0d0d0d; color: var(--accent); }
+    .btn-dark:hover { background: #1e1e1e; }
+
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-visual { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CUB<span>ED</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="solver.html">Solve</a></li>
+    <li><a href="notations.html">Notations</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-copy">
+    <div class="hero-eyebrow">Rubik's Cube Solver</div>
+    <h1 class="hero-title">Twist Less.<br><em>Solve</em> More.</h1>
+    <p class="hero-sub">
+      Enter your scramble or paint your cube's colours — Cubed works out every step of the solution, from the white cross all the way to the final corner.
+    </p>
+    <div class="hero-cta">
+      <a href="solver.html" class="btn btn-primary btn-lg">Solve my cube →</a>
+      <a href="notations.html" class="btn btn-ghost btn-lg">Learn notations</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="cube-3d-wrap">
+      <div class="cube-3d">
+        <!-- Top face -->
+        <div class="c-face top">
+          <span style="background:#f0ece4"></span><span style="background:#e8c547"></span><span style="background:#f0ece4"></span>
+          <span style="background:#3b82f6"></span><span style="background:#f0ece4"></span><span style="background:#22c55e"></span>
+          <span style="background:#f0ece4"></span><span style="background:#e05a2b"></span><span style="background:#f0ece4"></span>
+        </div>
+        <!-- Front face -->
+        <div class="c-face front">
+          <span style="background:#e8c547"></span><span style="background:#e05a2b"></span><span style="background:#3b82f6"></span>
+          <span style="background:#f0ece4"></span><span style="background:#e05a2b"></span><span style="background:#e05a2b"></span>
+          <span style="background:#22c55e"></span><span style="background:#e05a2b"></span><span style="background:#e8c547"></span>
+        </div>
+        <!-- Right face -->
+        <div class="c-face right">
+          <span style="background:#22c55e"></span><span style="background:#22c55e"></span><span style="background:#e8c547"></span>
+          <span style="background:#e05a2b"></span><span style="background:#22c55e"></span><span style="background:#f0ece4"></span>
+          <span style="background:#22c55e"></span><span style="background:#3b82f6"></span><span style="background:#22c55e"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" style="border-top:1px solid var(--border)">
+  <div class="section-label">Why Cubed</div>
+  <h2 class="section-title">Built for real cubers.</h2>
+  <p class="section-sub">No camera required. No guesswork. Just fast, accurate solutions using proven algorithms.</p>
+  <p class="section-sub"><strong>Built by Cubers, For cubers</strong></p>
+  <div class="features-grid mt-4">
+    <div class="feature-card">
+      <div class="feature-title">Always Accurate</div>
+      <div class="feature-desc">Layer-by-layer solver with verified algorithms. Every solution is checked before you see it.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-title">Visual Input</div>
+      <div class="feature-desc">Paint each face using our 6-panel colour picker — no notation knowledge needed.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-title">Scramble Input</div>
+      <div class="feature-desc">Already have a scramble? Just paste it in standard cube notation and go.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-title">Learn Notations</div>
+      <div class="feature-desc">Full notation guide with interactive quiz so you can follow along with any solution.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Instructions -->
+<section class="section" style="background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="section-label">Process</div>
+  <h2 class="section-title">Three steps to solved.</h2>
+  <div class="steps-row mt-4">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-title">Input Your Cube</div>
+      <div class="step-desc">Paint the 6 faces using the colour picker, or type in a standard scramble.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-title">Solve</div>
+      <div class="step-desc">Hit Solve. The engine runs a full layer-by-layer algorithm in under a second.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-title">Follow the Steps</div>
+      <div class="step-desc">Read each stage with the exact moves listed. Execute them on your cube and you're done.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<div class="cta-banner">
+  <div>
+    <div class="cta-banner-title">Ready to solve?</div>
+    <div class="cta-banner-sub">Takes less than 30 seconds.</div>
+  </div>
+  <a href="solver.html" class="btn btn-dark btn-lg">Go to solver →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">CUBED</span>
+</footer>
+
+<script>
+  document.querySelector('.nav-hamburger')?.addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('open');
+  });
+</script>
+</body>
+</html>
