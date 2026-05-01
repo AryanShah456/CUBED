@@ -12,7 +12,7 @@ solution into human-readable layers.Including an interactive quiz to bridge the 
 # CORE FEATURES
 Visual Cube InputInteractive 6-panel interface to "paint" the colors of your physical cube. Real-time state tracking to ensure the cube 
 layout is valid before solving. Notation-Based SolverSupport for standard scramble notation (e.g., R U R') for advanced users. Instant 
-generation of solution sequences. Layer-by-Layer (LBL) LogicSolutions are generated using the beginner-friendly LBL method.
+generation of solution sequences. Layer-by-Layer (LBL) Logic solutions are generated using the beginner-friendly LBL method.
 Covers all stages: 
 • White Cross, 
 • First Two Layers (F2L) corners, 
