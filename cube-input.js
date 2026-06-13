@@ -10,6 +10,15 @@ const COLOR_MAP = {
   G: { label: 'Green',  hex: '#22c55e' },
 };
 
+function invertScramble(scrambleString) {
+  const moves = scrambleString.trim().split(/\s+/);
+  return moves.reverse().map(m => {
+    if (m.endsWith("'")) return m.slice(0, -1);
+    if (m.endsWith("2")) return m;
+    return m + "'";
+  }).join(' ');
+}
+
 const FACE_META = [
   { key:'U', label:'Top (White)',   center:'W', desc:'U face — white centre' },
   { key:'L', label:'Left (Blue)',   center:'B', desc:'L face — blue centre' },
@@ -258,32 +267,50 @@ async function handleSolve() {
   if (loadingEl) loadingEl.style.display = 'flex';
 
   setTimeout(async () => {
-    if (loadingEl) loadingEl.style.display = 'none';
     try {
-      let cube;
       if (activeTab === 'scramble') {
         const scramble = document.getElementById('scramble-input').value;
         const v = validateScramble(scramble);
         if (!v.valid) {
+          loadingEl.style.display = 'none';
           resultEl.innerHTML = `<p class="solve-error">⚠ ${v.error}</p>`;
           return;
         }
-        cube = window.CubedSolver.cubeFromScramble(scramble);
+        // Use the inverse logic for scrambles
+        const inverse = invertScramble(scramble);
+        renderSolution({ steps: [{ label: "Scramble Inverse", desc: "Reversing moves", moves: inverse }] }, resultEl);
       } else {
+        // Use Kociemba for visual input
         const { faces, allFilled } = collectFaces();
         if (!allFilled) {
+          loadingEl.style.display = 'none';
           resultEl.innerHTML = `<p class="solve-error">⚠ Please fill in all 54 stickers before solving.</p>`;
           return;
         }
-        cube = window.CubedSolver.cubeFromFaces(faces);
+        const cube = window.CubedSolver.cubeFromFaces(faces);
+        const result = await window.CubedSolver.solveCube(cube);
+        renderSolution(result, resultEl);
       }
-      const result = await window.CubedSolver.solveCube(cube);
-      renderSolution(result, resultEl);
+      loadingEl.style.display = 'none';
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch(err) {
+      loadingEl.style.display = 'none';
       if (resultEl) resultEl.innerHTML = `<p class="solve-error">⚠ Error: ${err.message}</p>`;
     }
   }, 300);
+}
+
+// Add this helper to cube-input.js
+function setFacesFromState(stateString) {
+  // stateString is 54 chars: U9 R9 F9 D9 L9 B9
+  const order = ['U', 'R', 'F', 'D', 'L', 'B'];
+  for (let i = 0; i < 6; i++) {
+    const faceKey = order[i];
+    const faceColors = stateString.substring(i * 9, (i + 1) * 9).split('');
+    faceData[faceKey] = faceColors;
+  }
+  buildFacePanels();
+  updateCompletionBar();
 }
 
 /* ─── Init ───────────────────────────────────────────────── */
